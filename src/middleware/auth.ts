@@ -1,7 +1,6 @@
 // Xác minh token
 import jwt from "jsonwebtoken";
-
-export const SECRET_KEY = "257946";
+import { key_access } from "../plugin/config";
 
 export const auth = (req, res, next) => {
   let authorization = req.headers.authorization;
@@ -10,7 +9,7 @@ export const auth = (req, res, next) => {
     if (!accessToken) {
       throw new Error("Error Unauthorized Access");
     } else {
-      jwt.verify(accessToken, SECRET_KEY, (err, data) => {
+      jwt.verify(accessToken, key_access, (err, data) => {
         if (err) {
           res.status(401).json({
             error: err.message,

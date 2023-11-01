@@ -6,4 +6,4 @@ import { auth } from "../middleware/auth";
 export const routes = Router();
 
 routes.use("/auth", AuthRoute);
-routes.use("/users", auth, userRoute);
+routes.use("/user", auth, userRoute);

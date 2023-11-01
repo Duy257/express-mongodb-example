@@ -1,7 +1,6 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { User } from "../model/user";
-import { SECRET_KEY } from "../middleware/auth";
+import Base64 from "../plugin/base64";
+import { Token } from "../plugin/token";
 
 class AuthController {
   register = async (req, res) => {
@@ -19,51 +18,65 @@ class AuthController {
           error: "Tài khoản đã tồn tại!",
         });
       } else {
-        password = await bcrypt.hash(password, 9);
+        const decodePassword = Base64.decode(password);
         const user = {
           email,
           username,
-          password,
+          password: decodePassword,
         };
-        const newUser = await User.create(user);
-        return res.status(200).json(newUser);
+        await User.create(user);
+        return res.status(200).json({ success: true });
       }
     } catch (error) {
-      throw Error(error.message);
+      return res.status(error.code).send({
+        error: error.message,
+      });
     }
   };
 
   async login(req, res) {
-    let userForm = req.body;
+    let { email, password } = req.body;
+    if (!email || !password)
+      return res.status(500).send({
+        error: "Thiếu thông tin",
+      });
     let user = await User.findOne({
-      username: userForm.username,
+      email: email,
     });
     if (!user) {
-      return res.status(401).json({
+      return res.status(500).json({
         message: "Tài khoản hoặc mật khẩu sai",
       });
     } else {
-      let comparePassword = await bcrypt.compare(
-        userForm.password,
-        user.password
-      );
-      if (!comparePassword) {
-        return res.status(401).json({
-          message: "Tài khoản hoặc mật khẩu sai",
-        });
-      } else {
+      const decodePassword = Base64.decode(password);
+      if (decodePassword === user.password) {
         let payload = {
           username: user.username,
           idUser: user._id,
         };
-        let token = await jwt.sign(payload, SECRET_KEY, {
-          expiresIn: 36000,
-        });
+        const generateToken = Token.sign({ payload });
         return res.status(200).json({
-          token: token,
+          ...generateToken,
           idUser: user._id,
         });
+      } else {
+        return res.status(401).json({
+          message: "Tài khoản hoặc mật khẩu sai",
+        });
       }
+    }
+  }
+  async loginWithToken(req, res) {
+    try {
+      let { refreshToken } = req.body;
+      if (!refreshToken)
+        return res.status(500).send({
+          error: "Thiếu thông tin",
+        });
+      const token = Token.refresh({ refreshToken });
+      return res.status(200).json(token);
+    } catch (error) {
+      throw error;
     }
   }
 }

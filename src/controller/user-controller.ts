@@ -1,60 +1,18 @@
-import e, { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { User } from "../model/user";
+import { omit } from "lodash";
 
 class UserController {
-  getAll = async (req: Request, res: Response) => {
-    let users = await User.find();
-    res.status(200).json(users);
-  };
-  addUser = async (req: Request, res: Response, next: NextFunction) => {
+  fetch = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      let user = req.body;
-      let users = await User.create(user);
-      res.status(201).json(users);
-    } catch (err) {
-      next(err);
-    }
-  };
-  getUser = async (req: Request, res: Response, next: NextFunction) => {
-    let id = req.params.id;
-    let user = await User.findById(id);
-    try {
+      const id = req.params.id;
+      if (!id) return res.status(500).json("Thiếu id");
+      let user = await User.findOne({ _id: id });
       if (!user) {
-        res.status(404).json();
+        return res.status(404).json("Không tìm thấy người dùng");
       } else {
-        res.status(200).json(user);
-      }
-    } catch (err) {
-      next(err);
-    }
-  };
-  updateUser = (req: Request, res: Response, next: NextFunction) => {
-    let id = req.params.id;
-    let user = User.findById(id);
-    if (!user) {
-      res.status(404).json;
-    } else {
-      let data = req.body;
-      User.findByIdAndUpdate(
-        {
-          _id: id,
-        },
-        data
-      );
-      data._id = id;
-      res.status(200).json(data);
-    }
-  };
-
-  getCurrentUser = async (req: any, res: Response, next: NextFunction) => {
-    let idUser = req.decoded.idUser;
-    console.log(idUser);
-    try {
-      let user = await User.findById(idUser);
-      if (user) {
-        res.status(200).json(user);
-      } else {
-        res.status(404).json();
+        const userClone = omit(user, "_doc.password");
+        return res.status(200).json(userClone);
       }
     } catch (err) {
       next(err);
