@@ -5,7 +5,8 @@ class DataSource {
   async connect() {
     console.log("start connect");
 
-    const DB_URL = "mongodb+srv://aohota:257946@servertest.gtiolhl.mongodb.net";
+    const DB_URL =
+      "mongodb+srv://aohota:257946@servertest.gtiolhl.mongodb.net/learn-db";
     try {
       await mongoose.connect(DB_URL);
       console.log("connected success");

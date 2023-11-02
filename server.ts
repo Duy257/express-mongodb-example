@@ -4,7 +4,7 @@ import cors from "cors";
 import { routes } from "./src/routes/routes";
 import dataSource from "./src/data-source";
 
-const PORT = 3000;
+const PORT = 4000;
 const app = express();
 dataSource.connect();
 app.use(cors());
