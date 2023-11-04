@@ -7,13 +7,15 @@ export const auth = (req, res, next) => {
   if (authorization) {
     let accessToken = authorization.split(" ")[1];
     if (!accessToken) {
-      throw new Error("Error Unauthorized Access");
+      res.status(401).json({
+        message: "Error Unauthorized Access",
+      });
+      throw new Error("");
     } else {
       jwt.verify(accessToken, key_access, (err, data) => {
         if (err) {
           res.status(401).json({
-            error: err.message,
-            message: "You are anonymous2",
+            message: err.message,
           });
         } else {
           req.decoded = data;
@@ -23,7 +25,7 @@ export const auth = (req, res, next) => {
     }
   } else {
     res.status(401).json({
-      message: "You are anonymous3",
+      message: "Error Unauthorized Access",
     });
   }
 };
